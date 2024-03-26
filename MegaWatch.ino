@@ -1,10 +1,10 @@
 #include <U8g2lib.h>
+#include <PulseSensorPlayground.h>
+#include<Wire.h>
 
 
+#define USE_ARDUINO_INTERRUPTS true
 
-
-
-U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE, 3, 2);
 // 'Menu1_Resized', 128x52px
 const unsigned char epd_bitmap_Menu1_Resized [] U8X8_PROGMEM = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -240,6 +240,17 @@ const int leftButton = 6;
 const int selectButton = 7;
 const int rightButton = 8;
 
+const int PulseWire = A0;
+int Threshold = 700;  
+
+const int MPU=0x68; 
+int16_t AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ;
+
+
+PulseSensorPlayground pulseSensor;
+
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE, 3, 2);
+
 int menuType = -1; // -1 = Title 0 = Menu 1 = Any menu
 int menuPosition = 0; // 0 = pulse; 1 = Rep; 2 = Steps; 3 = Location
 
@@ -250,6 +261,14 @@ void setup() {
   pinMode(leftButton, INPUT_PULLUP);
   pinMode(selectButton, INPUT_PULLUP);
   pinMode(rightButton , INPUT_PULLUP);
+  pulseSensor.analogInput(PulseWire);   
+	pulseSensor.setThreshold(Threshold); 
+  pulseSensor.begin();
+  Wire.begin();
+  Wire.beginTransmission(MPU);
+  Wire.write(0x6B);  
+  Wire.write(0);    
+  Wire.endTransmission(true);
 }
 
 void loop() {
@@ -336,7 +355,7 @@ void loop() {
     }
     else if(menuType = 1)
     {
-        // Selects module
+      displayFunctionality();
     }
     
     
@@ -348,4 +367,69 @@ void loop() {
   
 
 }
+
+void displayFunctionality()
+{
+
+  Serial.println(menuPosition);
+
+  if(menuPosition == 0)
+  {
+    int myBPM = pulseSensor.getBeatsPerMinute();
+        
+        char bpm[12];
+        if(myBPM != 0)
+        {
+          sprintf(bpm, "%d", myBPM);
+        }
+        
+        u8g2.drawStr(40, 32, "Pulse: ");
+        u8g2.drawStr(72, 32, bpm);
+        delay(500);
+        
+  }
+  else if(menuPosition == 1)
+  {
+      
+    Wire.beginTransmission(MPU);
+    Wire.write(0x3B);  
+    Wire.endTransmission(false);
+    Wire.requestFrom(MPU,12,true);   
+    GyX=Wire.read()<<8|Wire.read();  
+    GyY=Wire.read()<<8|Wire.read();  
+    GyZ=Wire.read()<<8|Wire.read(); 
+
+    char gy[16];
+    sprintf(gy, "X:%d Y:%d Z:%d", GyX, GyY, GyZ);
+    u8g2.drawStr(40, 32, "Gyroscope");
+    u8g2.drawStr(0, 40, gy);
+  }
+  else if(menuPosition == 2)
+  {
+    Wire.beginTransmission(MPU);
+    Wire.write(0x3B);  
+    Wire.endTransmission(false);
+    Wire.requestFrom(MPU,12,true);  
+    AcX=Wire.read()<<8|Wire.read();    
+    AcY=Wire.read()<<8|Wire.read();  
+    AcZ=Wire.read()<<8|Wire.read();  
+      
+
+    char acc[16];
+    sprintf(acc, "X:%d Y:%d Z:%d", AcX, AcY, AcZ);
+    u8g2.drawStr(40, 32, "Accelerometer");
+    u8g2.drawStr(0, 40, acc);
+  }
+  else if(menuPosition == 3)
+  {
+    u8g2.drawStr(16, 40, "Work in Progress...");
+  }
+
+  
+
+
+}
+
+
+
 
