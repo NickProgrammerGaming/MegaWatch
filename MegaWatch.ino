@@ -1,6 +1,8 @@
 #include <U8g2lib.h>
 #include <PulseSensorPlayground.h>
 #include<Wire.h>
+#include "RTClib.h"
+
 
 
 #define USE_ARDUINO_INTERRUPTS true
@@ -246,6 +248,8 @@ int Threshold = 700;
 const int MPU=0x68; 
 int16_t AcX,AcY,AcZ,Tmp,GyX,GyY,GyZ;
 
+RTC_DS3231 rtc;
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
 PulseSensorPlayground pulseSensor;
 
@@ -253,6 +257,8 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE, 3, 2);
 
 int menuType = -1; // -1 = Title 0 = Menu 1 = Any menu
 int menuPosition = 0; // 0 = pulse; 1 = Rep; 2 = Steps; 3 = Location
+
+
 
 void setup() {
   Serial.begin(9600); 
@@ -264,11 +270,13 @@ void setup() {
   pulseSensor.analogInput(PulseWire);   
 	pulseSensor.setThreshold(Threshold); 
   pulseSensor.begin();
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   Wire.begin();
   Wire.beginTransmission(MPU);
   Wire.write(0x6B);  
   Wire.write(0);    
   Wire.endTransmission(true);
+
 }
 
 void loop() {
@@ -347,7 +355,10 @@ void loop() {
 
     if(menuType == -1)
     {
-      u8g2.drawStr(42, 32, "Mega Watch");
+      DateTime now = rtc.now();
+      char time[16];
+      sprintf(time, "%d:%d:%d", now.hour(), now.minute(), now.second());
+      u8g2.drawStr(42, 32, time);
     }
     else if(menuType == 0)
     {
@@ -361,9 +372,6 @@ void loop() {
     
     
   }while (u8g2.nextPage());
-  
-  
-  
   
 
 }
