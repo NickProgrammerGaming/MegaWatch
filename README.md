@@ -2,7 +2,7 @@
 
 Mega Watch е смарт часовник, с вграден фитнес тракер. Този проект е изготвен за TuesFest 2024.
 
-<!-- Snimka na Tues Fest 2024 -->
+![Tues Fest Logo](TuesFest2024.webp)
 
 ## Функционалности
 
@@ -11,11 +11,11 @@ Mega Watch е смарт часовник, с вграден фитнес тра
 - Педометър - Мери и показва крачки, като отново има опции за нулиране на броя крачки
 - Сензор за пулс - Измерва и показва пулс
 
-<!-- Snimka na Mega Watch Thumbnaila -->
+![Mega Watch Thumbnail](TuesFest_Thumbnail.png)
 
 ## Използвани Технологии
 
-<!-- Snimka na Arduino ideto -->
+![Arduino IDE](Arduino_IDE_logo.png)
 
 ## Създатели
 - Никола Кръстанов, 11г клас
